@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>منارة</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;800&family=Amiri:wght@700&display=swap" rel="stylesheet">
+<style>
+:root{--g:#0f3d2e;--g2:#1c5a45;--gold:#b8975a;--bg:#f7f5ef;--ink:#1d2b25;--r:14px}
+*{box-sizing:border-box}body{margin:0;font-family:Tajawal,system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.8;padding-bottom:env(safe-area-inset-bottom)}
+h1,h2,h3{font-family:Amiri,serif;color:var(--g);margin:.3em 0}
+header{background:var(--g);color:#fff;padding:env(safe-area-inset-top) 16px 0;position:sticky;top:0;z-index:5}
+header .bar{display:flex;align-items:center;justify-content:space-between;height:56px}
+header b{font-family:Amiri,serif;font-size:1.6rem;color:var(--gold)}
+nav{display:flex;gap:4px;overflow-x:auto;padding-bottom:8px}
+nav a{color:#e8efe9;text-decoration:none;padding:4px 12px;border-radius:99px;white-space:nowrap;font-size:.95rem}
+nav a.on{background:var(--gold);color:var(--g)}
+main{max-width:980px;margin:0 auto;padding:20px 16px 60px}
+.hero{background:var(--g);color:#fff;border-radius:var(--r);padding:40px 24px;text-align:center;border-bottom:4px solid var(--gold)}
+.hero h1{color:#fff;font-size:2.2rem}.hero p{color:#d7e3db;max-width:520px;margin:8px auto}.hero .slogan{color:var(--gold);font-family:Amiri,serif;font-size:1.3rem}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0}
+.stat{background:#fff;border:1px solid #e3dfd2;border-radius:var(--r);padding:12px;text-align:center}.stat b{display:block;font-size:1.8rem;color:var(--g)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.card{background:#fff;border:1px solid #e3dfd2;border-radius:var(--r);overflow:hidden;cursor:pointer}
+.card img,.ph{width:100%;height:170px;object-fit:cover;display:block;background:#e9efe9}
+.ph{display:grid;place-items:center;font-size:2.4rem;color:var(--gold)}
+.card div{padding:12px}.card small{color:#6b786f}
+.btn{background:var(--g);color:#fff;border:0;border-radius:10px;padding:10px 18px;font:inherit;cursor:pointer}
+.btn.gold{background:var(--gold);color:var(--g)}.btn.red{background:#9b2c2c}.btn.line{background:#fff;color:var(--g);border:1px solid var(--g)}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0;align-items:center}
+input,textarea,select{width:100%;font:inherit;padding:10px;border:1px solid #cfcab9;border-radius:10px;background:#fff;margin:4px 0 10px}
+.gate{min-height:80vh;display:grid;place-items:center;text-align:center}.gate .opts{display:grid;gap:12px;max-width:340px;margin:20px auto}
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}.gal img{width:100%;height:120px;object-fit:cover;border-radius:10px;cursor:zoom-in}
+.thumb{position:relative}.thumb button{position:absolute;top:4px;left:4px;background:#9b2c2c;color:#fff;border:0;border-radius:50%;width:26px;height:26px}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.85);display:grid;place-items:center;z-index:20;padding:16px}.modal img{max-width:100%;max-height:90vh;border-radius:8px}
+.box{background:#fff;border-radius:var(--r);padding:20px;max-width:560px;width:100%;max-height:90vh;overflow:auto}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--g);color:#fff;padding:10px 20px;border-radius:99px;z-index:30}
+.err{color:#9b2c2c}.empty{text-align:center;color:#6b786f;padding:30px}
+</style></head><body>
+<div id="app"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+/* ===== ضعي بيانات مشروعك هنا (المفتاح العام anon فقط، وليس service_role) ===== */
+const SUPABASE_URL="https://hfjgytkcqhfjewzmjonw.supabase.co", SUPABASE_KEY="sb_publishable_yId9U-7Z08iOwX1vRG5dxw_rbjWNvnm";
+/* ============================================================================ */
+const TYPES={initiative:["المبادرات","مبادرة","💡"],talent:["المواهب","موهبة","🎨"],achievement:["الإنجازات","إنجاز","🏆"],idea:["الأفكار الجديدة","فكرة","✨"]};
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+const $=s=>document.querySelector(s),app=$("#app");
+let session=null,school={},items=[];
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const url=p=>sb.storage.from("photos").getPublicUrl(p).data.publicUrl;
+const toast=m=>{const t=document.createElement("div");t.className="toast";t.textContent=m;document.body.append(t);setTimeout(()=>t.remove(),2500)};
+const zoom=u=>{const m=document.createElement("div");m.className="modal";m.innerHTML=`<img src="${u}">`;m.onclick=()=>m.remove();document.body.append(m)};
+async function load(){
+  const [a,b]=await Promise.all([sb.from("items").select("*").order("created_at",{ascending:false}),sb.from("settings").select("*")]);
+  items=a.data||[];school={};(b.data||[]).forEach(r=>school[r.key]=r.value);
+}
+function card(i){const im=i.images?.[0];return `<div class="card" onclick="location.hash='#item/${i.id}'">${im?`<img loading="lazy" src="${url(im)}" alt="">`:`<div class="ph">${TYPES[i.type][2]}</div>`}<div><small>${TYPES[i.type][1]}${i.date?" • "+esc(i.date):""}</small><h3>${esc(i.title)}</h3></div></div>`}
+function shell(inner,cur){
+  const links=[["home","الرئيسية"],...Object.entries(TYPES).map(([k,v])=>[k,v[0]]),["about","عن منارة"]];
+  return `<header><div class="bar"><b>منارة</b><span>${session?`<a href="#admin" style="color:#fff">لوحة التحكم</a>`:`<a href="#gate" style="color:#d7e3db">تغيير الدخول</a>`}</span></div><nav>${links.map(([k,t])=>`<a href="#${k}" class="${k==cur?"on":""}">${t}</a>`).join("")}</nav></header><main>${inner}</main>`}
+function list(t){
+  const L=items.filter(i=>i.type==t);
+  return shell(`<div class="row"><h2 style="flex:1">${TYPES[t][0]}</h2>${session?`<button class="btn gold" onclick="location.hash='#edit/new/${t}'">+ إضافة ${TYPES[t][1]}</button>`:""}</div>${L.length?`<div class="grid">${L.map(card).join("")}</div>`:`<div class="empty">لا يوجد محتوى بعد.${session?" ابدئي بالإضافة.":""}</div>`}`,t)}
+const views={
+ gate(){return `<div class="gate"><div><div style="font-size:3rem">🕯️</div><h1 style="font-size:2.6rem">منارة</h1><p class="slogan" style="color:var(--gold);font-family:Amiri,serif;font-size:1.2rem">من فكرة صغيرة تبدأ منارة الأثر</p><p>${esc(school.school||"")}</p><div class="opts"><button class="btn" onclick="sessionStorage.m='guest';location.hash='#home'">الدخول كضيف</button><button class="btn gold" onclick="location.hash='#login'">الدخول كمبتكر</button></div></div></div>`},
+ login(){return `<div class="gate"><div class="box"><h2>دخول المبتكر</h2><input id="em" type="email" placeholder="البريد الإلكتروني" autocomplete="email"><input id="pw" type="password" placeholder="كلمة السر" autocomplete="current-password"><p class="err" id="er"></p><button class="btn" id="go">دخول</button> <button class="btn line" onclick="location.hash='#gate'">رجوع</button></div></div>`},
+ home(){const c=t=>items.filter(i=>i.type==t).length;
+  return shell(`<div class="hero"><h1>أهلًا بكم في منارة</h1><p class="slogan">من فكرة صغيرة تبدأ منارة الأثر</p><p>منصة مدرسية تجمع مبادرات الطالبات ومواهبهن وإنجازاتهن وأفكارهن الجديدة في مكان واحد. ${esc(school.school||"")}.</p></div>
+  <div class="stats"><div class="stat"><b>${c("initiative")}</b>مبادرات</div><div class="stat"><b>${c("talent")}</b>مواهب</div><div class="stat"><b>${c("achievement")}</b>إنجازات</div></div>
+  <h2>أحدث ما أُضيف</h2>${items.length?`<div class="grid">${items.slice(0,6).map(card).join("")}</div>`:`<div class="empty">لم يُضف محتوى بعد.</div>`}`,"home")},
+ about(){return shell(`<h2>عن منارة</h2><p>منارة منصة مدرسية تفاعلية تحتفي بالمبادرات والمواهب والإنجازات والأفكار الجديدة.</p><h3>رسالتنا</h3><p>أن تجد كل فكرة صغيرة من يراها ويدعمها، فتتحول إلى أثر.</p><h3>أهدافنا</h3><p>توثيق إبداعات الطالبات، وتشجيع المبادرة، وإبراز النجاحات، وفتح باب المقترحات التطويرية.</p><div class="box" style="max-width:none;border:1px solid #e3dfd2"><p><b>المدرسة:</b> ${esc(school.school)}<br><b>قائدة المدرسة:</b> ${esc(school.leader)}<br><b>صاحبة المبادرة:</b> ${esc(school.founder)}</p></div>`,"about")},
+ item(id){const i=items.find(x=>x.id==id);if(!i)return shell(`<div class="empty">غير موجود</div>`);
+  return shell(`<p><a href="#${i.type}">← ${TYPES[i.type][0]}</a></p><small>${TYPES[i.type][1]}${i.date?" • "+esc(i.date):""}</small><h1>${esc(i.title)}</h1><p style="white-space:pre-wrap">${esc(i.description)}</p><div class="gal">${(i.images||[]).map(p=>`<img loading="lazy" src="${url(p)}" onclick="zoom(this.src)">`).join("")}</div>${session?`<div class="row"><button class="btn gold" onclick="location.hash='#edit/${i.id}'">تعديل</button><button class="btn red" onclick="del('${i.id}')">حذف</button></div>`:""}`,i.type)},
+ admin(){const c=t=>items.filter(i=>i.type==t).length;
+  return shell(`<h2>لوحة المبتكر</h2><p>${session.user.email}</p><div class="stats" style="grid-template-columns:repeat(2,1fr)">${Object.entries(TYPES).map(([k,v])=>`<div class="stat"><b>${c(k)}</b>${v[0]}</div>`).join("")}</div>
+  <div class="row">${Object.entries(TYPES).map(([k,v])=>`<button class="btn gold" onclick="location.hash='#edit/new/${k}'">+ ${v[1]}</button>`).join("")}</div>
+  <h3>معلومات المدرسة</h3><label>المدرسة</label><input id="s1" value="${esc(school.school)}"><label>قائدة المدرسة</label><input id="s2" value="${esc(school.leader)}"><label>صاحبة المبادرة</label><input id="s3" value="${esc(school.founder)}"><button class="btn" id="sv">حفظ المعلومات</button>
+  <h3>كل المحتوى</h3><div class="grid">${items.map(card).join("")||'<div class="empty">فارغ</div>'}</div><div class="row"><button class="btn line" id="out">تسجيل الخروج</button></div>`,"")},
+ edit(a,b){const isNew=a=="new",i=isNew?{type:b,title:"",description:"",date:"",images:[]}:items.find(x=>x.id==a);if(!i)return shell(`<div class="empty">غير موجود</div>`);
+  return shell(`<h2>${isNew?"إضافة":"تعديل"} ${TYPES[i.type][1]}</h2><label>العنوان</label><input id="f1" value="${esc(i.title)}"><label>الوصف</label><textarea id="f2" rows="5">${esc(i.description)}</textarea><label>التاريخ</label><input id="f3" type="date" value="${i.date||""}">
+  <label>الصور</label><input id="f4" type="file" accept="image/*" multiple hidden><button class="btn gold" onclick="$('#f4').click()">إضافة صورة</button><div class="gal" id="th" style="margin:10px 0"></div><p class="err" id="er"></p>
+  <div class="row"><button class="btn" id="save">حفظ ونشر</button><button class="btn line" id="prev">معاينة</button><button class="btn line" onclick="history.back()">إلغاء</button></div>`,i.type)}
+};
+let form;
+function drawThumbs(){$("#th").innerHTML=form.keep.map((p,n)=>`<div class="thumb"><img src="${url(p)}"><button onclick="form.keep.splice(${n},1);drawThumbs()">×</button></div>`).join("")+form.add.map((f,n)=>`<div class="thumb"><img src="${f.pv}"><button onclick="form.add.splice(${n},1);drawThumbs()">×</button></div>`).join("")}
+async function shrink(file){const bmp=await createImageBitmap(file);const k=Math.min(1,1600/Math.max(bmp.width,bmp.height));const c=document.createElement("canvas");c.width=bmp.width*k;c.height=bmp.height*k;c.getContext("2d").drawImage(bmp,0,0,c.width,c.height);return new Promise(r=>c.toBlob(r,"image/jpeg",.85))}
+function bindEdit(a,b){
+  const i=a=="new"?{type:b,images:[]}:items.find(x=>x.id==a);form={keep:[...(i.images||[])],add:[]};drawThumbs();
+  $("#f4").onchange=async e=>{for(const f of e.target.files){try{const bl=await shrink(f);form.add.push({bl,pv:URL.createObjectURL(bl)})}catch{$("#er").textContent="تعذر قراءة إحدى الصور"}}e.target.value="";drawThumbs()};
+  $("#prev").onclick=()=>{const m=document.createElement("div");m.className="modal";m.onclick=()=>m.remove();m.innerHTML=`<div class="box"><h2>${esc($("#f1").value)}</h2><p style="white-space:pre-wrap">${esc($("#f2").value)}</p><div class="gal">${[...form.keep.map(url),...form.add.map(f=>f.pv)].map(u=>`<img src="${u}">`).join("")}</div></div>`;document.body.append(m)};
+  $("#save").onclick=async()=>{const t=$("#f1").value.trim();if(!t){$("#er").textContent="اكتبي العنوان";return}
+    $("#save").disabled=true;$("#save").textContent="جارٍ الحفظ…";
+    try{const paths=[...form.keep];for(const f of form.add){const p=`${i.type}/${Date.now()}-${Math.random().toString(36).slice(2,8)}.jpg`;const r=await sb.storage.from("photos").upload(p,f.bl,{contentType:"image/jpeg"});if(r.error)throw r.error;paths.push(p)}
+      const row={type:i.type,title:t,description:$("#f2").value,date:$("#f3").value||null,images:paths};
+      const r=a=="new"?await sb.from("items").insert(row):await sb.from("items").update(row).eq("id",a);if(r.error)throw r.error;
+      const gone=(i.images||[]).filter(p=>!paths.includes(p));if(gone.length)await sb.storage.from("photos").remove(gone);
+      await load();toast("تم الحفظ");location.hash="#"+i.type}catch(e){$("#er").textContent="تعذر الحفظ: "+(e.message||e);$("#save").disabled=false;$("#save").textContent="حفظ ونشر"}}}
+async function del(id){if(!session||!confirm("هل أنتِ متأكدة من الحذف؟ لا يمكن التراجع."))return;const i=items.find(x=>x.id==id);
+  const r=await sb.from("items").delete().eq("id",id);if(r.error)return toast("تعذر الحذف");if(i.images?.length)await sb.storage.from("photos").remove(i.images);await load();toast("تم الحذف");location.hash="#"+i.type}
+async function route(){
+  let [h,a,b]=(location.hash.slice(1)||"gate").split("/");
+  if(!session&&!sessionStorage.m&&!["gate","login"].includes(h)){location.hash="#gate";return}
+  if(["admin","edit"].includes(h)&&!session){location.hash="#login";return}   // حماية واجهة؛ الحماية الفعلية في قاعدة البيانات
+  let v;
+  if(TYPES[h])v=list(h);else if(h=="item")v=views.item(a);else if(views[h])v=views[h](a,b);else v=views.home();
+  app.innerHTML=v;window.scrollTo(0,0);
+  if(h=="login")$("#go").onclick=async()=>{const r=await sb.auth.signInWithPassword({email:$("#em").value.trim(),password:$("#pw").value});if(r.error){$("#er").textContent="البريد أو كلمة السر غير صحيحة";return}session=r.data.session;location.hash="#admin"};
+  if(h=="admin"){$("#out").onclick=async()=>{await sb.auth.signOut();session=null;sessionStorage.removeItem("m");location.hash="#gate"};
+    $("#sv").onclick=async()=>{const r=await sb.from("settings").upsert([{key:"school",value:$("#s1").value},{key:"leader",value:$("#s2").value},{key:"founder",value:$("#s3").value}]);if(r.error)return toast("تعذر الحفظ");await load();toast("تم حفظ المعلومات")}}
+  if(h=="edit")bindEdit(a,b);
+}
+(async()=>{try{session=(await sb.auth.getSession()).data.session;await load()}catch(e){app.innerHTML='<p class="err" style="padding:20px">تعذر الاتصال بقاعدة البيانات. راجعي إعداد SUPABASE_URL و SUPABASE_KEY.</p>';return}
+ sb.auth.onAuthStateChange((_,s)=>{session=s});addEventListener("hashchange",route);route()})();
+</script></body></html>

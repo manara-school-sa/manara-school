@@ -56,7 +56,7 @@ async function load(){
 function card(i){const im=i.images?.[0];return `<div class="card" onclick="location.hash='#item/${i.id}'">${im?`<img loading="lazy" src="${url(im)}" alt="">`:`<div class="ph">${TYPES[i.type][2]}</div>`}<div><small>${TYPES[i.type][1]}${i.date?" • "+esc(i.date):""}</small><h3>${esc(i.title)}</h3></div></div>`}
 function shell(inner,cur){
   const links=[["home","الرئيسية"],...Object.entries(TYPES).map(([k,v])=>[k,v[0]]),["about","عن منارة"]];
-  return `<header><div class="bar"><b>منارة</b><span>${session?`<a href="#admin" style="color:#fff">لوحة التحكم</a>`:`<a href="#gate" style="color:#d7e3db">تغيير الدخول</a>`}</span></div><nav>${links.map(([k,t])=>`<a href="#${k}" class="${k==cur?"on":""}">${t}</a>`).join("")}</nav></header><main>${inner}</main>`}
+  return `<header><div class="bar"><img src="9BEB90ED-B0A3-449E-94F5-828B6F2C1A8D.png" alt="شعار منارة" style="height:55px;width:auto;object-fit:contain;"><span>${session?`<a href="#admin" style="color:#fff">لوحة التحكم</a>`:`<a href="#gate" style="color:#d7e3db">تغيير الدخول</a>`}</span></div><nav>${links.map(([k,t])=>`<a href="#${k}" class="${k==cur?"on":""}">${t}</a>`).join("")}</nav></header><main>${inner}</main>`}
 function list(t){
   const L=items.filter(i=>i.type==t);
   return shell(`<div class="row"><h2 style="flex:1">${TYPES[t][0]}</h2>${session?`<button class="btn gold" onclick="location.hash='#edit/new/${t}'">+ إضافة ${TYPES[t][1]}</button>`:""}</div>${L.length?`<div class="grid">${L.map(card).join("")}</div>`:`<div class="empty">لا يوجد محتوى بعد.${session?" ابدئي بالإضافة.":""}</div>`}`,t)}

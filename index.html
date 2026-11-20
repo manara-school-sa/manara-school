@@ -50,8 +50,21 @@ const url=p=>sb.storage.from("photos").getPublicUrl(p).data.publicUrl;
 const toast=m=>{const t=document.createElement("div");t.className="toast";t.textContent=m;document.body.append(t);setTimeout(()=>t.remove(),2500)};
 const zoom=u=>{const m=document.createElement("div");m.className="modal";m.innerHTML=`<img src="${u}">`;m.onclick=()=>m.remove();document.body.append(m)};
 async function load(){
-  const [a,b]=await Promise.all([sb.from("items").select("*").order("created_at",{ascending:false}),sb.from("settings").select("*")]);
-  items=a.data||[];school={};(b.data||[]).forEach(r=>school[r.key]=r.value);
+  const [a,b]=await Promise.all([
+    sb.from("items").select("*").order("created_at",{ascending:false}),
+    sb.from("settings").select("*")
+  ]);
+
+  items=a.data||[];
+  school={};
+  (b.data||[]).forEach(r=>school[r.key]=r.value);
+
+  const c=await sb.from("manara_honorees")
+    .select("*")
+    .order("rank",{ascending:true});
+
+  if(c.error)throw c.error;
+  honorees=c.data||[];
 }
 function card(i){const im=i.images?.[0];return `<div class="card" onclick="location.hash='#item/${i.id}'">${im?`<img loading="lazy" src="${url(im)}" alt="">`:`<div class="ph">${TYPES[i.type][2]}</div>`}<div><small>${TYPES[i.type][1]}${i.date?" • "+esc(i.date):""}</small><h3>${esc(i.title)}</h3></div></div>`}
 function shell(inner,cur){

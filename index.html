@@ -44,7 +44,7 @@ const SUPABASE_URL="https://hfjgytkcqhfjewzmjonw.supabase.co", SUPABASE_KEY="sb_
 const TYPES={initiative:["المبادرات","مبادرة","💡"],talent:["المواهب","موهبة","🎨"],achievement:["الإنجازات","إنجاز","🏆"],idea:["الأفكار الجديدة","فكرة","✨"]};
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 const $=s=>document.querySelector(s),app=$("#app");
-let session=null,school={},items=[];
+let session=null,school={},items=[],honorees=[];
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const url=p=>sb.storage.from("photos").getPublicUrl(p).data.publicUrl;
 const toast=m=>{const t=document.createElement("div");t.className="toast";t.textContent=m;document.body.append(t);setTimeout(()=>t.remove(),2500)};

@@ -181,7 +181,11 @@ async function route(){
   if(!session&&!sessionStorage.m&&!["gate","login"].includes(h)){location.hash="#gate";return}
   if(["admin","edit"].includes(h)&&!session){location.hash="#login";return}   // حماية واجهة؛ الحماية الفعلية في قاعدة البيانات
   let v;
-  if(TYPES[h])v=list(h);else if(h=="item")v=views.item(a);else if(views[h])v=views[h](a,b);else v=views.home();
+  if(TYPES[h])v=list(h);
+ else if(h=="item")v=views.item(a);
+else if(h=="honorees-admin")v=views.honoreesAdmin();
+ else if(views[h])v=views[h](a,b);
+ else v=views.home();
   app.innerHTML=v;window.scrollTo(0,0);
   if(h=="login")$("#go").onclick=async()=>{const r=await sb.auth.signInWithPassword({email:$("#em").value.trim(),password:$("#pw").value});if(r.error){$("#er").textContent="البريد أو كلمة السر غير صحيحة";return}session=r.data.session;location.hash="#admin"};
   if(h=="admin"){$("#out").onclick=async()=>{await sb.auth.signOut();session=null;sessionStorage.removeItem("m");location.hash="#gate"};

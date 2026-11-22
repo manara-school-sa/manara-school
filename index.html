@@ -158,6 +158,34 @@ async function route(){
   if(h=="admin"){$("#out").onclick=async()=>{await sb.auth.signOut();session=null;sessionStorage.removeItem("m");location.hash="#gate"};
     $("#sv").onclick=async()=>{const r=await sb.from("settings").upsert([{key:"school",value:$("#s1").value},{key:"leader",value:$("#s2").value},{key:"founder",value:$("#s3").value}]);if(r.error)return toast("تعذر الحفظ");await load();toast("تم حفظ المعلومات")}}
   if(h=="edit")bindEdit(a,b);
+  if(h=="honorees-admin"){
+  $("#hs").onclick=async()=>{
+    const row={
+      school_year:$("#hy").value.trim(),
+      rank:Number($("#hr").value),
+      name:$("#hn").value.trim(),
+      achievement:$("#ha").value.trim(),
+      published:$("#hp").checked
+    };
+
+    if(!row.school_year||!row.name){
+      $("#he").textContent="اكتبي العام الدراسي واسم الطالبة";
+      return;
+    }
+
+    const r=await sb.from("manara_honorees")
+      .upsert(row,{onConflict:"school_year,rank"});
+
+    if(r.error){
+      $("#he").textContent="تعذر الحفظ: "+r.error.message;
+      return;
+    }
+
+    await load();
+    toast("تم الحفظ");
+    location.hash="#honorees";
+  };
+}
 }
 (async()=>{try{session=(await sb.auth.getSession()).data.session;await load()}catch(e){app.innerHTML='<p class="err" style="padding:20px">تعذر الاتصال بقاعدة البيانات. راجعي إعداد SUPABASE_URL و SUPABASE_KEY.</p>';return}
  sb.auth.onAuthStateChange((_,s)=>{session=s});addEventListener("hashchange",route);route()})();

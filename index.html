@@ -119,10 +119,39 @@ const views={
     ${!data.length?'<div class="empty">سيتم الإعلان عن نخبة منارة قريبًا.</div>':""}
   `,"honorees");
 },
+    honoreesAdmin(){
+    if(!session)return shell(`<div class="empty">يجب تسجيل الدخول كمبتكر</div>`,"");
+
+    return shell(`
+      <h2>إدارة نخبة منارة</h2>
+      <div class="box">
+        <label>العام الدراسي</label>
+        <input id="hy" placeholder="مثال: 1448هـ">
+
+        <label>المركز</label>
+        <select id="hr">
+          ${Array.from({length:10},(_,i)=>`<option value="${i+1}">${i+1}</option>`).join("")}
+        </select>
+
+        <label>اسم الطالبة</label>
+        <input id="hn" placeholder="الاسم">
+
+        <label>الإنجاز</label>
+        <textarea id="ha" placeholder="اكتبي الإنجاز"></textarea>
+
+        <label><input type="checkbox" id="hp"> نشر الاسم</label>
+
+        <button class="btn gold" id="hs">حفظ</button>
+        <p id="he" class="err"></p>
+      </div>
+    `,"honorees");
+  },
   item(id){const i=items.find(x=>x.id==id);if(!i)return shell(`<div class="empty">غير موجود</div>`);
   return shell(`<p><a href="#${i.type}">← ${TYPES[i.type][0]}</a></p><small>${TYPES[i.type][1]}${i.date?" • "+esc(i.date):""}</small><h1>${esc(i.title)}</h1><p style="white-space:pre-wrap">${esc(i.description)}</p><div class="gal">${(i.images||[]).map(p=>`<img loading="lazy" src="${url(p)}" onclick="zoom(this.src)">`).join("")}</div>${session?`<div class="row"><button class="btn gold" onclick="location.hash='#edit/${i.id}'">تعديل</button><button class="btn red" onclick="del('${i.id}')">حذف</button></div>`:""}`,i.type)},
  admin(){const c=t=>items.filter(i=>i.type==t).length;
-  return shell(`<h2>لوحة المبتكر</h2><p>${session.user.email}</p><div class="stats" style="grid-template-columns:repeat(2,1fr)">${Object.entries(TYPES).map(([k,v])=>`<div class="stat"><b>${c(k)}</b>${v[0]}</div>`).join("")}</div>
+  return shell(`<h2>لوحة المبتكر</h2><p>${session.user.email}</p><div class="stats" style="grid-template-columns:repeat(2,1fr)">${Object.entries(TYPES).map(([k,v])=>`<div class="stat"><b>${c(k)}</b>${v[0]}</div>`).join("")}</div><div class="row" style="margin:18px 0">
+  <button class="btn gold" onclick="location.hash='#honorees-admin'">إدارة نخبة منارة</button>
+</div>
   <div class="row">${Object.entries(TYPES).map(([k,v])=>`<button class="btn gold" onclick="location.hash='#edit/new/${k}'">+ ${v[1]}</button>`).join("")}</div>
   <h3>معلومات المدرسة</h3><label>المدرسة</label><input id="s1" value="${esc(school.school)}"><label>قائدة المدرسة</label><input id="s2" value="${esc(school.leader)}"><label>صاحبة المبادرة</label><input id="s3" value="${esc(school.founder)}"><button class="btn" id="sv">حفظ المعلومات</button>
   <h3>كل المحتوى</h3><div class="grid">${items.map(card).join("")||'<div class="empty">فارغ</div>'}</div><div class="row"><button class="btn line" id="out">تسجيل الخروج</button></div>`,"")},
